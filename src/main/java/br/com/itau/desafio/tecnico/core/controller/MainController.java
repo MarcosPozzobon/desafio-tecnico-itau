@@ -19,8 +19,8 @@ public class MainController {
     }
 
     @GetMapping("/estatistica")
-    public ResponseEntity<EstatisticaResponseDTO> obterEstatisticas(){
-        var estatisticas = mainService.listarEstatisticas();
+    public ResponseEntity<EstatisticaResponseDTO> obterEstatisticas(@RequestParam(defaultValue = "60") Integer tempoStatsMinutos){
+        var estatisticas = mainService.listarEstatisticas(tempoStatsMinutos);
         return ResponseEntity.status(200).body(estatisticas);
     }
 

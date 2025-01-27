@@ -24,8 +24,9 @@ public class MainService {
         }
     }
 
-    public EstatisticaResponseDTO listarEstatisticas() {
-        OffsetDateTime umMinutoAtras = OffsetDateTime.now().minusMinutes(1);
+    public EstatisticaResponseDTO listarEstatisticas(Integer tempoStatsMinutos) {
+        var minutos = tempoStatsMinutos;
+        OffsetDateTime umMinutoAtras = OffsetDateTime.now().minusMinutes(minutos);
 
         List<TransacaoRequestDTO> transacoesUltimoMinuto = transacoes.stream()
                 .filter(transacao -> transacao.getDataHora().isAfter(umMinutoAtras)
