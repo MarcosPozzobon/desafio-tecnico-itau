@@ -2,8 +2,10 @@ package br.com.itau.desafio.tecnico.core.controller;
 
 import br.com.itau.desafio.tecnico.core.dto.request.TransacaoRequestDTO;
 import br.com.itau.desafio.tecnico.core.service.MainService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,9 +21,9 @@ public class MainController {
     }
 
     @PostMapping("/transacao")
-    public ResponseEntity<Void> salvarTransacoes(final TransacaoRequestDTO transacaoRequestDTO){
-        //TODO
-        return null;
+    public ResponseEntity<Void> salvarTransacoes(final @Valid @RequestBody TransacaoRequestDTO transacaoRequestDTO){
+        mainService.salvarTransacao(transacaoRequestDTO);
+        return ResponseEntity.status(201).build();
     }
 
 }

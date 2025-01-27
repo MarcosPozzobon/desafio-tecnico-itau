@@ -1,17 +1,25 @@
 package br.com.itau.desafio.tecnico.core.dto.request;
 
-import java.time.LocalDateTime;
+import br.com.itau.desafio.tecnico.core.config.StrictOffsetDateTimeDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+
+import java.time.OffsetDateTime;
 
 
 public class TransacaoRequestDTO {
 
     private Double valor;
 
-    private LocalDateTime dataHora;
+    @NotNull(message = "dataHora não pode ser nula")
+    @PastOrPresent(message = "dataHora deve ser no passado ou presente")
+    @JsonDeserialize(using = StrictOffsetDateTimeDeserializer.class)
+    private OffsetDateTime dataHora;
 
     public TransacaoRequestDTO(){}
 
-    public TransacaoRequestDTO(Double valor, LocalDateTime dataHora) {
+    public TransacaoRequestDTO(Double valor, OffsetDateTime dataHora) {
         this.valor = valor;
         this.dataHora = dataHora;
     }
@@ -24,24 +32,24 @@ public class TransacaoRequestDTO {
         this.valor = valor;
     }
 
-    public LocalDateTime getDataHora() {
+    public OffsetDateTime getDataHora() {
         return dataHora;
     }
 
-    public void setDataHora(LocalDateTime dataHora) {
+    public void setDataHora(OffsetDateTime dataHora) {
         this.dataHora = dataHora;
     }
 
     public static class Builder {
         private Double valor;
-        private LocalDateTime dataHora;
+        private OffsetDateTime dataHora;
 
         public Builder valor(Double valor) {
             this.valor = valor;
             return this;
         }
 
-        public Builder dataHora(LocalDateTime dataHora) {
+        public Builder dataHora(OffsetDateTime dataHora) {
             this.dataHora = dataHora;
             return this;
         }

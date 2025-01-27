@@ -9,16 +9,14 @@ public class ExceptionBuilder {
 
     private Integer status;
 
-    private String detalhes;
 
     private LocalDateTime timestamp;
 
     public ExceptionBuilder(){}
 
-    public ExceptionBuilder(String titulo, Integer status, String detalhes, LocalDateTime timestamp) {
+    public ExceptionBuilder(String titulo, Integer status, LocalDateTime timestamp) {
         this.titulo = titulo;
         this.status = status;
-        this.detalhes = detalhes;
         this.timestamp = timestamp;
     }
 
@@ -36,14 +34,6 @@ public class ExceptionBuilder {
 
     public void setStatus(Integer status) {
         this.status = status;
-    }
-
-    public String getDetalhes() {
-        return detalhes;
-    }
-
-    public void setDetalhes(String detalhes) {
-        this.detalhes = detalhes;
     }
 
     public LocalDateTime getTimestamp() {
@@ -70,18 +60,13 @@ public class ExceptionBuilder {
             return this;
         }
 
-        public Builder detalhes(String detalhes) {
-            this.detalhes = detalhes;
-            return this;
-        }
-
         public Builder timestamp(LocalDateTime timestamp) {
             this.timestamp = timestamp;
             return this;
         }
 
         public ExceptionBuilder build() {
-            return new ExceptionBuilder(titulo, status, detalhes, timestamp);
+            return new ExceptionBuilder(titulo, status,timestamp);
         }
     }
 
