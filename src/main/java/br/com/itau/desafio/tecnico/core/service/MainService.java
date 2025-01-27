@@ -5,8 +5,12 @@ import br.com.itau.desafio.tecnico.core.dto.response.EstatisticaResponseDTO;
 import br.com.itau.desafio.tecnico.core.exception.HorarioTransacaoInvalidaException;
 import br.com.itau.desafio.tecnico.core.exception.TransacaoInvalidaException;
 import br.com.itau.desafio.tecnico.core.exception.ValorInvalidoException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.DoubleSummaryStatistics;
@@ -17,74 +21,92 @@ import java.util.stream.Collectors;
 public class MainService {
 
     private static List<TransacaoRequestDTO> transacoes = new ArrayList<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainService.class);
 
-    public void deletarTransacoes(){
-        if(!transacoes.isEmpty()){
+    public void deletarTransacoes(HttpServletRequest request) {
+        if (!transacoes.isEmpty()) {
             transacoes.clear();
+            logInfo("O serviço de exclusão de transações foi chamado", request);
         }
     }
 
-    public EstatisticaResponseDTO listarEstatisticas(Integer tempoStatsMinutos) {
-        var minutos = tempoStatsMinutos;
-        OffsetDateTime umMinutoAtras = OffsetDateTime.now().minusMinutes(minutos);
+    public EstatisticaResponseDTO listarEstatisticas(Integer tempoStatsMinutos, HttpServletRequest request) {
+        long startTime = System.nanoTime();
 
-        List<TransacaoRequestDTO> transacoesUltimoMinuto = transacoes.stream()
-                .filter(transacao -> transacao.getDataHora().isAfter(umMinutoAtras)
-                        && transacao.getDataHora().isBefore(OffsetDateTime.now()))
+        OffsetDateTime tempoLimite = OffsetDateTime.now().minusMinutes(tempoStatsMinutos);
+
+        List<TransacaoRequestDTO> transacoesFiltradas = transacoes.stream()
+                .filter(transacao -> transacao.getDataHora().isAfter(tempoLimite) && transacao.getDataHora().isBefore(OffsetDateTime.now()))
                 .collect(Collectors.toList());
 
-        DoubleSummaryStatistics stats = transacoesUltimoMinuto.stream()
+        DoubleSummaryStatistics stats = transacoesFiltradas.stream()
                 .mapToDouble(TransacaoRequestDTO::getValor)
                 .summaryStatistics();
 
-        EstatisticaResponseDTO resultadoEstatisticas = new EstatisticaResponseDTO();
+        EstatisticaResponseDTO estatisticas = new EstatisticaResponseDTO();
+        estatisticas.setCount(stats.getCount());
+        estatisticas.setSum(stats.getSum());
+        estatisticas.setAvg(stats.getAverage());
+        estatisticas.setMin(stats.getCount() > 0 ? stats.getMin() : 0.0);
+        estatisticas.setMax(stats.getCount() > 0 ? stats.getMax() : 0.0);
 
-        resultadoEstatisticas.setCount(stats.getCount());
-        resultadoEstatisticas.setSum(stats.getSum());
-        resultadoEstatisticas.setAvg(stats.getAverage());
+        long endTime = System.nanoTime();
 
-        resultadoEstatisticas.setMin(stats.getCount() > 0 ? stats.getMin() : 0.0);
-        resultadoEstatisticas.setMax(stats.getCount() > 0 ? stats.getMax() : 0.0);
+        long durationInMillis = (endTime - startTime) / 1_000_000;
 
+        LOGGER.info("Tempo levado para o cálculo das estatísticas: {} ms", durationInMillis);
 
-        return resultadoEstatisticas;
+        logInfo("O serviço de listagem de estatísticas foi chamado", request);
+
+        return estatisticas;
     }
 
 
-    public void salvarTransacao(final TransacaoRequestDTO transacaoRequestDTO){
-        if(transacaoRequestDTO == null || !isTransacaoValida(transacaoRequestDTO)){
+    public void salvarTransacao(final TransacaoRequestDTO transacaoRequestDTO, HttpServletRequest request) {
+        if (transacaoRequestDTO == null || !isTransacaoValida(transacaoRequestDTO)) {
             throw new TransacaoInvalidaException();
         }
 
+        LOGGER.info("O serviço de inclusão de transações foi chamado em {} às {}.",
+                LocalDateTime.now(), transacaoRequestDTO);
         transacoes.add(transacaoRequestDTO);
     }
 
-    private boolean isTransacaoValida(final TransacaoRequestDTO transacaoRequestDTO){
-
-        if(!isValorValido(transacaoRequestDTO.getValor())){
+    private boolean isTransacaoValida(final TransacaoRequestDTO transacaoRequestDTO) {
+        if (!isValorValido(transacaoRequestDTO.getValor())) {
             throw new ValorInvalidoException();
         }
 
-        if(!isDataTransacaoValida(transacaoRequestDTO.getDataHora())){
+        if (!isDataTransacaoValida(transacaoRequestDTO.getDataHora())) {
             throw new HorarioTransacaoInvalidaException();
         }
 
         return true;
-
     }
 
     private boolean isDataTransacaoValida(OffsetDateTime dataTransacao) {
-        if(dataTransacao == null){
+        if (dataTransacao == null || dataTransacao.isAfter(OffsetDateTime.now())) {
             throw new HorarioTransacaoInvalidaException();
         }
-        return !dataTransacao.isAfter(OffsetDateTime.now());
+        return true;
     }
 
     private boolean isValorValido(Double valor) {
-        if(valor == null || valor < 0){
+        if (valor == null || valor < 0) {
             throw new ValorInvalidoException();
         }
         return true;
     }
 
+    private void logInfo(String mensagem, HttpServletRequest request) {
+        String host = request.getServerName();
+        String requestURL = request.getRequestURL().toString();
+
+        LOGGER.info("{} em {} às {}. Host: {}, URL: {}",
+                mensagem,
+                this.getClass().getName(),
+                LocalDateTime.now(),
+                host,
+                requestURL);
+    }
 }
