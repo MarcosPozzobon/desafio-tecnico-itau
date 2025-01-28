@@ -12,25 +12,25 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
 public class MainService {
 
-    private static List<TransacaoRequestDTO> transacoes = new ArrayList<>();
+
     private static final Logger LOGGER = LoggerFactory.getLogger(MainService.class);
 
-    public void deletarTransacoes(HttpServletRequest request) {
+    public void deletarTransacoes(HttpServletRequest request, List<TransacaoRequestDTO> transacoes) {
         if (!transacoes.isEmpty()) {
             transacoes.clear();
             logInfo("O serviço de exclusão de transações foi chamado", request);
         }
     }
 
-    public EstatisticaResponseDTO listarEstatisticas(Integer tempoStatsMinutos, HttpServletRequest request) {
+    public EstatisticaResponseDTO listarEstatisticas(Integer tempoStatsMinutos, HttpServletRequest request, List<TransacaoRequestDTO> transacoes) {
         long startTime = System.nanoTime();
 
         OffsetDateTime tempoLimite = OffsetDateTime.now().minusMinutes(tempoStatsMinutos);
@@ -62,7 +62,7 @@ public class MainService {
     }
 
 
-    public void salvarTransacao(final TransacaoRequestDTO transacaoRequestDTO, HttpServletRequest request) {
+    public void salvarTransacao(final TransacaoRequestDTO transacaoRequestDTO, HttpServletRequest request, List<TransacaoRequestDTO> transacoes) {
         if (transacaoRequestDTO == null || !isTransacaoValida(transacaoRequestDTO)) {
             throw new TransacaoInvalidaException();
         }
